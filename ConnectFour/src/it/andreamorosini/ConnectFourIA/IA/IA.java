@@ -1,9 +1,8 @@
 package it.andreamorosini.ConnectFourIA.IA;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import org.javatuples.Pair;
+
+import java.util.*;
 
 public class IA {
 
@@ -36,15 +35,11 @@ public class IA {
     }
 
     public boolean isValidLocation(String[][] board, int col){
-        if(board[ROW_COUNT-1][col].equals(EMPTY)){
-            return true;
-        }
-        else
-            return false;
+        return board[ROW_COUNT - 1][col].equals(EMPTY);
     }
 
     public int getNextOpenRow(String[][] board, int col){
-        for(int i = ROW_COUNT-1; i > 0; i++){
+        for(int i = ROW_COUNT-1; i < 0; i++){
             if (board[i][col].equals(EMPTY)){
                 return i;
             }
@@ -88,7 +83,7 @@ public class IA {
         return false;
     }
 
-    public int evaluateWindow(List window, String piece){
+    public int evaluateWindow(ArrayList<String> window, String piece){
         int score = 0;
         int nrPiece = 0;
         int nrEMPTY = 0;
@@ -98,14 +93,12 @@ public class IA {
             opponentPiece = AI_PIECE;
 
         //calcola il numero di piece nella window e assegna uno score corrispondente
-        for(int i = 0; i < window.size(); i++){
-            if(window.get(i).equals(piece)){
+        for (Object o : window) {
+            if (o.equals(piece)) {
                 nrPiece++;
-            }
-            else if(window.get(i).equals(EMPTY)){
+            } else if (o.equals(EMPTY)) {
                 nrEMPTY++;
-            }
-            else if (window.get(i).equals(opponentPiece)){
+            } else if (o.equals(opponentPiece)) {
                 nrOpponentPiece++;
             }
         }
@@ -128,6 +121,7 @@ public class IA {
 
     public int scorePosition(String[][] board, String piece){
         int score = 0;
+        ArrayList<String> window = new ArrayList<>();
 
         //score della colonna centrale
         int centerCount = 0;
@@ -138,26 +132,130 @@ public class IA {
         }
         score+=centerCount*3;
 
-        /*//score orizzontale
-        ArrayList<String>
-        for(int i = 0 ; i < ROW_COUNT; i++){
+        //score orizzontale
+        ArrayList<String> rowArray = new ArrayList<>();
 
-        }*/
+        for(int i = 0 ; i < ROW_COUNT; i++){
+            for(int j = 0 ; j < COLUMN_COUNT; j++){
+                rowArray.add(board[i][j]);
+            }
+            for(int j = 0; j < COLUMN_COUNT - 3; j++){
+                int col;
+                for(col = j; col < col+WINDOW_LENGTH; col++){
+                    window.add(rowArray.get(col));
+                    score+=evaluateWindow(window, piece);
+                }
+            }
+        }
+
+        //score verticale
+        ArrayList<String> colArray = new ArrayList<>();
+
+        for(int j = 0; j < COLUMN_COUNT; j++){
+            for(int i = 0; i < ROW_COUNT; i++){
+                colArray.add(board[i][j]);
+            }
+            for(int i = 0 ; i < COLUMN_COUNT - 3; i++){
+                int row;
+                for(row = i ; row < row+WINDOW_LENGTH; row++){
+                    window.add(colArray.get(row));
+                    score+=evaluateWindow(window,piece);
+                }
+            }
+        }
+
+        //score diagonale
+        for(int i = 0 ; i < ROW_COUNT - 3; i++){
+            for(int j = 0; j < COLUMN_COUNT - 3; j++){
+                for(int range = 0; range < WINDOW_LENGTH; range++){
+                    window.add(board[i+range][j+range]);
+                }
+                score+=evaluateWindow(window, piece);
+            }
+        }
+
+        for(int i = 0 ; i < ROW_COUNT - 3; i++){
+            for(int j = 0 ; j < COLUMN_COUNT - 3 ; j++){
+                for (int range = 0 ; range < WINDOW_LENGTH; range++){
+                    window.add(board[i+3-range][j+range]);
+                }
+                score+=evaluateWindow(window,piece);
+            }
+        }
+
 
         return score;
 
     }
 
     public boolean isTerminalNode(String[][] board){
-        if(winningMove(board, PLAYER_PIECE) || winningMove(board, AI_PIECE) ||getValidLocations(board).size()==0 ){
-            return true;
-        }
-        return false;
+        return winningMove(board, PLAYER_PIECE) || winningMove(board, AI_PIECE) || getValidLocations(board).size() == 0;
     }
 
-    //public Map.Entry Minimax(String[][] board, int depth, int alpha, int beta, boolean isMaximizingPlayer){}
+    public Pair<Integer, Integer> Minimax(String[][] board, int depth, int alpha, int beta, boolean isMaximizingPlayer){
+        ArrayList<Integer> validLocations = getValidLocations(board);
+        boolean isTerminal = isTerminalNode(board);
+        if (depth==0 || isTerminal){
+            if (isTerminal){
+                if(winningMove(board, AI_PIECE)){
+                    return Pair.with(0,100000000);
+                }
+                else if(winningMove(board, PLAYER_PIECE)){
+                    return Pair.with(0,-100000000);
+                }
+                else{
+                    return Pair.with(0,0);
+                }
+            }
+            else{
+                return Pair.with(0, scorePosition(board,AI_PIECE));
+            }
+        }
+        int value;
+        Random random = new Random();
+        int column = validLocations.get(random.nextInt(validLocations.size()));
+        if(isMaximizingPlayer){
+            value = Integer.MIN_VALUE;
+            for (int col:validLocations) {
+                int row = getNextOpenRow(board, col);
+                String[][] tempBoard = board.clone();
+                dropPiece(tempBoard, row, col, AI_PIECE);
+                int newScore = Minimax(tempBoard, depth-1, alpha, beta,false).getValue1();
+                if(newScore>value){
+                    value = newScore;
+                    column = col;
+                }
+                if(value > alpha){
+                    alpha = value;
+                }
+                if(alpha >= beta){
+                    break;
+                }
+            }
+        }
+        else{
+            value = Integer.MAX_VALUE;
+            for (int col:validLocations) {
+                int row = getNextOpenRow(board,col);
+                String[][] tempBoard = board.clone();
+                dropPiece(tempBoard, row, col,PLAYER_PIECE);
+                int newScore = Minimax(tempBoard, depth-1, alpha, beta, true).getValue1();
+                if(newScore<value){
+                    value = newScore;
+                    column = col;
+                }
+                if(value < beta){
+                    beta = value;
+                }
+                if(alpha >= beta){
+                    break;
+                }
+            }
+        }
+        return Pair.with(column,value);
+    }
 
-    public List getValidLocations(String[][] board){
+    public ArrayList<Integer> getValidLocations(String[][] board){
         ArrayList<Integer> validLocations = new ArrayList<>();
         for(int j = 0 ; j < COLUMN_COUNT; j++){
             if(isValidLocation(board,j)){
@@ -168,7 +266,7 @@ public class IA {
     }
 
     public int pickBestMove(String[][] board, String piece){
-        ArrayList<Integer> validLocations = (ArrayList<Integer>) getValidLocations(board);
+        ArrayList<Integer> validLocations = getValidLocations(board);
         int bestScore = -1000;
         Random random = new Random();
         int bestCol = validLocations.get(random.nextInt(validLocations.size()));

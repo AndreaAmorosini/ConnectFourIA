@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="apidocs">
+    <CLASSES />
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/../../../download/javatuples-1.2-dist.zip!/javatuples-1.2/apidocs" />
+    </JAVADOC>
+    <SOURCES />
+  </library>
+</component>
