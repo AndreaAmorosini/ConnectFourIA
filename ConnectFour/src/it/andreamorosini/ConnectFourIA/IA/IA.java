@@ -9,9 +9,6 @@ public class IA {
     int ROW_COUNT = 6;
     int COLUMN_COUNT = 7;
 
-    int PLAYER = 0;
-    int IA = 1;
-
     String EMPTY = " ";
     String PLAYER_PIECE = "R";
     String AI_PIECE = "G";
@@ -20,6 +17,7 @@ public class IA {
 
     String[][] board;
 
+    //crea la griglia di gioco
     public String[][] createBoard(){
         board = new String[ROW_COUNT][COLUMN_COUNT];
         for(int i = 0; i<ROW_COUNT; i++){
@@ -31,15 +29,22 @@ public class IA {
     }
 
 
-
+    //mette il pezzo selezionato nella posizione selezionata
     public void dropPiece(String[][] board, int row, int col, String piece){
         board[row][col] = piece;
     }
 
+    //controlla se la colonna selezionata ha spazi validi dove mettere una pedina
     public boolean isValidLocation(String[][] board, int col){
-        return board[ROW_COUNT - 1][col].equals(EMPTY);
+        for(int i = ROW_COUNT - 1 ; i > 0; i--){
+            if(board[i][col].equals(EMPTY)){
+                return true;
+            }
+        }
+        return false;
     }
 
+    //restituisce la prossima riga utilizzabile della colonna selezionata
     public int getNextOpenRow(String[][] board, int col){
         //System.out.println("GETNEXTOPENROW\n STOPGETNEXTOPENROW");
         for(int i = ROW_COUNT-1; i > 0; i--){
@@ -50,6 +55,7 @@ public class IA {
         return -1;
     }
 
+    //Controlla se sono presenti mosse che risultano nella vittoria di piece
     public boolean winningMove(String[][] board, String piece){
         //System.out.println("WINNINGMOVE\nSTOPWINNINGMOVE");
         //controlla vittorie orizzontali
@@ -87,6 +93,7 @@ public class IA {
         return false;
     }
 
+    //valuta los core nella window selezionata
     public int evaluateWindow(ArrayList<String> window, String piece){
         int score = 0;
         int nrPiece = 0;
@@ -123,6 +130,7 @@ public class IA {
         return score;
     }
 
+    //valuta lo score di tutte le possibili mosse di piece
     public int scorePosition(String[][] board, String piece){
         int score = 0;
         ArrayList<String> window = new ArrayList<>();
@@ -196,12 +204,14 @@ public class IA {
 
     }
 
+    //verifica se si è in uno stato terminale del gioco
     public boolean isTerminalNode(String[][] board){
         return winningMove(board, PLAYER_PIECE) || winningMove(board, AI_PIECE) || getValidLocations(board).size() == 0;
     }
 
+    //algoritmo MINIMAX con potatura Afa e Beta
     public Pair<Integer, Integer> Minimax(String[][] board, int depth, int alpha, int beta, boolean isMaximizingPlayer){
-        System.out.println("MINIMAX");
+        //System.out.println("MINIMAX");
         ArrayList<Integer> validLocations = getValidLocations(board);
         boolean isTerminal = isTerminalNode(board);
         //System.out.println("è terminale?" + isTerminal);
@@ -279,6 +289,7 @@ public class IA {
         return Pair.with(column,value);
     }
 
+    //restituisce le posizioni valide dove poter mettere una pedina
     public ArrayList<Integer> getValidLocations(String[][] board){
         //System.out.println("GETVALIDLOCATIONS");
         ArrayList<Integer> validLocations = new ArrayList<>();
@@ -292,24 +303,8 @@ public class IA {
         return validLocations;
     }
 
-    public int pickBestMove(String[][] board, String piece){
-        ArrayList<Integer> validLocations = getValidLocations(board);
-        int bestScore = -1000;
-        Random random = new Random();
-        int bestCol = validLocations.get(random.nextInt(validLocations.size()));
-        for (int col:validLocations) {
-            int row = getNextOpenRow(board, col);
-            String[][] tempBoard = arrayCopy(board);
-            dropPiece(tempBoard, row, col, piece);
-            int score = scorePosition(tempBoard, piece);
-            if (score > bestScore){
-                bestScore = score;
-                bestCol = col;
-            }
-        }
-        return bestCol;
-    }
 
+    //metodo di servizio per clonare la board di gioco per farla utilizzare liberamente all'algoritmo minimax
     public String[][] arrayCopy(String[][] from){
         String[][] destination = new String[from.length][from[0].length];
         for(int i = 0 ; i < from.length; i++){

@@ -11,21 +11,33 @@ public class ConnectFour {
     static int PLAYER = 0;
     static int IA = 1;
 
-    static String EMPTY = " ";
     static String PLAYER_PIECE = "R";
     static String AI_PIECE = "G";
 
     public static void main(String[] args) {
+       newGame();
+       Scanner in = new Scanner(System.in);
+        System.out.println("Ricominciare la partita?[S/N]");
+        String response = in.nextLine();
+        if(response.equals("S")){
+            newGame();
+        }
+        else{
+            System.out.println("Fine Partita");
+        }
+    }
+
+    public static void newGame(){
         boolean gameOver = false;
         IA ia = new IA();
         String[][] board = ia.createBoard();
         printBoard(board);
         Random random = new Random();
         Scanner in = new Scanner(System.in);
-        //int turn = random.nextInt(2);
-        int turn = 0;
+        int turn = random.nextInt(2);
         while(!gameOver) {
             if (turn == PLAYER) {
+                //turno del giocatore
                 System.out.println(turn);
                 System.out.println("Turno del giocatore\n Inserisci la colonna dove posizionare il pezzo [1-7]:");
                 int col = in.nextInt() - 1;
@@ -41,6 +53,7 @@ public class ConnectFour {
                 }
             }
             else if(turn == IA){
+                //turno dell'IA
                 System.out.println(turn);
                 int col, minimaxScore;
                 System.out.println("Turno IA");
@@ -66,6 +79,7 @@ public class ConnectFour {
 
     }
 
+    //stampa la griglia di gioco
     public static void printBoard(String[][] board){
         StringBuilder sb = new StringBuilder();
         sb.append("------\n");
