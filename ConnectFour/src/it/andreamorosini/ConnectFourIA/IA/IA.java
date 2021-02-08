@@ -6,8 +6,8 @@ import java.util.*;
 
 public class IA {
 
-    int ROW_COUNT = 6;
-    int COLUMN_COUNT = 7;
+    int ROW_COUNT;
+    int COLUMN_COUNT;
 
     String EMPTY = " ";
     String PLAYER_PIECE = "R";
@@ -17,7 +17,14 @@ public class IA {
 
     String[][] board;
 
-    //crea la griglia di gioco
+    //imposta la taglia della griglia di gioco
+    public void setSize(int row, int col){
+        this.ROW_COUNT = row;
+        this.COLUMN_COUNT = col;
+    }
+
+
+    //crea la griglia di gioco e inizializza tutti i campi ad EMPTY
     public String[][] createBoard(){
         board = new String[ROW_COUNT][COLUMN_COUNT];
         for(int i = 0; i<ROW_COUNT; i++){
@@ -29,7 +36,7 @@ public class IA {
     }
 
 
-    //mette il pezzo selezionato nella posizione selezionata
+    //mette il pezzo selezionato nella posizione in board identificata da row e col
     public void dropPiece(String[][] board, int row, int col, String piece){
         board[row][col] = piece;
     }
@@ -93,7 +100,7 @@ public class IA {
         return false;
     }
 
-    //valuta los core nella window selezionata
+    //valuta lo score nella window selezionata
     public int evaluateWindow(ArrayList<String> window, String piece){
         int score = 0;
         int nrPiece = 0;
@@ -130,6 +137,7 @@ public class IA {
         return score;
     }
 
+    //FUNZIONE DI VALUTAZIONE
     //valuta lo score di tutte le possibili mosse di piece
     public int scorePosition(String[][] board, String piece){
         int score = 0;
@@ -215,6 +223,7 @@ public class IA {
         ArrayList<Integer> validLocations = getValidLocations(board);
         boolean isTerminal = isTerminalNode(board);
         //System.out.println("è terminale?" + isTerminal);
+        //funzione di utilità
         if (depth==0 || isTerminal){
             if (isTerminal){
                 if(winningMove(board, AI_PIECE)){
